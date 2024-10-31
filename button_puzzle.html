@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Random Cell Sequence Puzzle</title>
+    <style>
+      /* Center the entire content */
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100dvh;
+        margin: 0;
+        flex-direction: column;
+        font-family: Arial, sans-serif;
+      }
+
+      /* Table styling */
+      table {
+        border-collapse: collapse;
+        margin: 20px 0;
+      }
+
+      td {
+        width: 60px;
+        height: 60px;
+        border: 1px solid #000;
+        text-align: center;
+        font-size: 24px;
+        vertical-align: middle;
+      }
+
+      .highlight {
+        background-color: rgb(255, 78, 78);
+      }
+
+      .tick {
+        color: green;
+        font-weight: bold;
+      }
+
+      /* Button styling */
+      button {
+        padding: 10px 20px;
+        font-size: large;
+        margin: 5px;
+      }
+
+      /* Counter display styling */
+      #counter {
+        margin-top: 10px;
+        font-size: 18px;
+      }
+
+      /* Position the button in the top-right corner */
+      #top-bar {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+      }
+
+      .solved-button {
+        display: inline-block;
+        padding: 4px 8px; /* Smaller padding */
+        background-color: rgb(255, 78, 78);
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        font-weight: bold;
+        font-size: 0.9em; /* Smaller font size */
+      }
+
+      .solved-button:hover {
+        background-color: rgb(255, 97, 97);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="top-bar">
+      <a href="index.html" class="solved-button">Back To Word Search...</a>
+    </div>
+    <h1>PASSWORD PLEASE!</h1>
+    <div id="message" style="font-size: larger">&nbsp;</div>
+    <!-- Center-aligned table with 2 rows and 5 columns -->
+    <table id="tickTable">
+      <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+    </table>
+
+    <!-- Button to press -->
+    <button style="padding: 3rem 5rem" id="tickButton">Press me</button>
+    <button id="submitButton">Submit</button>
+
+    <!-- Display counter -->
+    <div id="counter">Button pressed: 0 times</div>
+
+    <script>
+      const sequence = [0, 6, 78, 79, 86, 69, 77, 66, 69, 82]; // Fixed button-press sequence
+      //   const sequence = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // Fixed button-press sequence
+      const tableCells = document.querySelectorAll("#tickTable td");
+      let pressCount = 0;
+      let targetPresses = 0;
+      let currentCell;
+
+      const usedCells = []; // Keep track of cells that have been used
+      const button = document.getElementById("tickButton");
+      const submitButton = document.getElementById("submitButton");
+      const counterDisplay = document.getElementById("counter");
+      const messageDisplay = document.getElementById("message");
+
+      // Function to calculate index based on cell position
+      function getCellIndex(cell) {
+        return Array.from(tableCells).indexOf(cell);
+      }
+
+      // Function to highlight a random cell that hasn't been used yet
+      function highlightRandomCell() {
+        // Clear previous highlight and ticks
+        tableCells.forEach((cell) => cell.classList.remove("highlight"));
+
+        // Select a new random cell from unused cells
+        const unusedCells = Array.from(tableCells).filter(
+          (cell) => !usedCells.includes(cell)
+        );
+        if (unusedCells.length === 0) return; // No unused cells left
+
+        currentCell =
+          unusedCells[Math.floor(Math.random() * unusedCells.length)];
+        currentCell.classList.add("highlight");
+        usedCells.push(currentCell); // Mark cell as used
+
+        // Determine the required presses based on the sequence and cell index
+        const cellIndex = getCellIndex(currentCell);
+        targetPresses = sequence[cellIndex];
+        console.log(`Target Presses for this cell: ${targetPresses}`); // Debugging line
+      }
+
+      // Start the puzzle by highlighting the first random cell
+      highlightRandomCell();
+
+      // Button click event to count presses
+      button.addEventListener("click", () => {
+        pressCount++;
+        counterDisplay.innerText = `Button pressed: ${pressCount} times`;
+      });
+
+      // Submit button click event to check if count matches the targetPresses for the highlighted cell
+      submitButton.addEventListener("click", () => {
+        if (pressCount === targetPresses) {
+          // If correct, mark cell with a tick, and move to next random cell
+          currentCell.innerHTML = "✅";
+          currentCell.classList.remove("highlight");
+          currentCell.classList.add("tick");
+
+          // Reset press count, display success message, and highlight next random cell
+          pressCount = 0;
+          counterDisplay.innerText = `Button pressed: ${pressCount} times`;
+          messageDisplay.innerText = "Correct! Moving to the next cell.";
+
+          // Check if all cells have been completed
+          const completedCells = document.querySelectorAll(".tick").length;
+          if (completedCells >= tableCells.length) {
+            messageDisplay.innerText =
+              "If The Next Puzzle Is Complete Then \nREDIRECT INCOMING!!";
+            button.disabled = true;
+            submitButton.disabled = true;
+          } else {
+            highlightRandomCell();
+          }
+        } else {
+          // If incorrect, reset the puzzle
+          pressCount = 0;
+          counterDisplay.innerText = `Button pressed: ${pressCount} times`;
+          messageDisplay.innerText = "Incorrect! Puzzle reset.";
+
+          // Clear all ticks and reset used cells list
+          tableCells.forEach((cell) => {
+            cell.innerHTML = "";
+            cell.classList.remove("tick");
+          });
+          usedCells.length = 0; // Clear the used cells
+          highlightRandomCell(); // Highlight the first cell again
+        }
+      });
+    </script>
+  </body>
+</html>
